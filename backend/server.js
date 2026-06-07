@@ -815,11 +815,7 @@ app.get('/api/orders/sold', isAuthenticated, async (req, res) => {
     }
 });
 
-app.use(express.static(path.join(__dirname, '../frontend/build')));
-
-app.get(/(.*)/, (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
-});
+// Frontend serving logic removed because the frontend is deployed independently on Netlify.
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
