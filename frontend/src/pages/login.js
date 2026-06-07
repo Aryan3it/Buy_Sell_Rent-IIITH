@@ -16,7 +16,7 @@ export default function Login() {
     useEffect(() => {
         const clearSession = async () => {
             try {
-                await fetch('http://localhost:3000/api/clear-session', {
+                await fetch('/api/clear-session', {
                     method: 'POST',
                     credentials: 'include'
                 });
@@ -34,14 +34,14 @@ export default function Login() {
     const handleCASLogin = async () => {
         try {
             // First clear the session
-            await fetch('http://localhost:3000/api/clear-session', {
+            await fetch('/api/clear-session', {
                 method: 'POST',
                 credentials: 'include'
             });
 
             // Then redirect to CAS
             const casURL = 'https://login.iiit.ac.in/cas/login';
-            const serviceURL = encodeURIComponent('http://localhost:3000/api/cas/validate');
+            const serviceURL = encodeURIComponent('/api/cas/validate');
             window.location.href = `${casURL}?service=${serviceURL}`;
         } catch (error) {
             console.error('Failed to initiate CAS login:', error);
@@ -115,7 +115,7 @@ export default function Login() {
 
         if (Object.keys(newErrors).length === 0) {
             try {
-                const response = await fetch('http://localhost:3000/api/login', {
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ export default function Login() {
                 </div>
                 <div className={styles.recaptchaContainer}>
                     <ReCAPTCHA
-                        sitekey="6Lc5z7oqAAAAAO6FPsxuAg88x_aR7b64KQTKYxtf"
+                        sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
                         onChange={handleRecaptchaChange}
                     />
                 </div>
@@ -199,7 +199,7 @@ export default function Login() {
                     </button>
                 </div>
                 <div className={styles.loginLink}>
-                    <Link to="/register">Don't have an account? Register here</Link>
+                    <Link to="/">Don't have an account? Register here</Link>
                 </div>
             </form>
         </div>

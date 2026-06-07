@@ -12,7 +12,7 @@ export default function Homenavbar(props) {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/api/user/me', {
+                const response = await axios.get('/api/user/me', {
                     withCredentials: true,
                 });
                 setUserName(response.data.firstName + " " + response.data.lastName);
@@ -27,10 +27,10 @@ export default function Homenavbar(props) {
     const fetchSearchResults = async (query = '') => {
         try {
             const response = query.length > 0
-                ? await axios.get(`http://localhost:3000/api/products/search`, {
+                ? await axios.get(`/api/products/search`, {
                     params: { q: query }
                 })
-                : await axios.get(`http://localhost:3000/api/products/initial`);
+                : await axios.get(`/api/products/initial`);
 
             setSearchResults(response.data.slice(0, 18)); // Limit to 18 results
         } catch (error) {
@@ -56,7 +56,7 @@ export default function Homenavbar(props) {
 
     const handleLogout = async () => {
         try {
-            await axios.post('http://localhost:3000/logout', {}, { withCredentials: true });
+            await axios.post('/logout', {}, { withCredentials: true });
             navigate('/login');
         } catch (error) {
             console.error('Logout failed:', error);
@@ -72,21 +72,17 @@ export default function Homenavbar(props) {
 
     return (
         <>
-            <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-                <div className="container-fluid px-4">
-                    <Link to="/home" className="navbar-brand fw-bold">
+            <nav className="glass-navbar sticky-top" style={{ padding: '0.75rem 2rem', zIndex: 1000 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2rem' }}>
+                    
+                    {/* Brand / Logo */}
+                    <Link to="/home" className="navbar-brand fw-bold m-0" style={{ fontSize: '1.5rem', flexShrink: 0 }}>
                         {props.title}
                     </Link>
 
-                    <div className="d-flex align-items-center">
-                        {userName && (
-                            <div className="me-3">
-                                <span className="fw-semibold">{userName}</span>
-                            </div>
-                        )}
-
-                        {/* Search Bar */}
-                        <div className="me-3">
+                    {/* Search Bar (Centered, Expanding) */}
+                    <div style={{ flexGrow: 1, maxWidth: '500px' }}>
+                        <div style={{ position: 'relative' }}>
                             <input
                                 type="text"
                                 className="form-control"
@@ -94,53 +90,44 @@ export default function Homenavbar(props) {
                                 value={searchQuery}
                                 onClick={handleSearchClick}
                                 onChange={handleSearchChange}
-                                style={{ width: '250px' }}
+                                style={{ 
+                                    width: '100%', 
+                                    backgroundColor: 'rgba(255,255,255,0.05)', 
+                                    color: 'var(--text-primary)', 
+                                    border: '1px solid var(--border-glass)',
+                                    borderRadius: 'var(--radius-xl)',
+                                    padding: '0.6rem 1.2rem',
+                                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)'
+                                }}
                             />
                         </div>
+                    </div>
+
+                    {/* Navigation Links (Right Aligned) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexShrink: 0 }}>
+                        <Link className="nav-link" to="/home">Home</Link>
+                        <Link className="nav-link" to="/profile">Profile</Link>
+                        <Link className="nav-link" to="/orders">Orders</Link>
+                        <Link className="nav-link" to="/sell">Sell</Link>
+                        <Link className="nav-link" to="/deliver">Deliver</Link>
+                        <Link className="nav-link" to="/cart">Cart</Link>
+                        <Link className="nav-link" to="/chatbot">Chatbot</Link>
+                        
+                        <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--border-glass)', margin: '0 0.5rem' }}></div>
+                        
+                        {userName && (
+                            <span className="fw-semibold" style={{ color: 'var(--text-primary)' }}>{userName}</span>
+                        )}
 
                         <button
-                            className="navbar-toggler"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#navbarContent"
+                            className="btn-outline-premium"
+                            onClick={handleLogout}
+                            style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}
                         >
-                            <span className="navbar-toggler-icon"></span>
+                            Logout
                         </button>
                     </div>
 
-                    <div className="collapse navbar-collapse" id="navbarContent">
-                        <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/home">Home</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/profile">Profile</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/orders">Orders</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/sell">Sell</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/deliver">Deliver Items</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/cart">My Cart</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/chatbot">Chatbot</Link>
-                            </li>
-                            <li className="nav-item">
-                                <button
-                                    className="btn btn-outline-danger"
-                                    onClick={handleLogout}
-                                >
-                                    Logout
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
                 </div>
             </nav>
 
@@ -164,12 +151,15 @@ export default function Homenavbar(props) {
                 >
                     <div
                         style={{
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--bg-secondary)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--border-glass)',
                             width: '500px',
                             maxHeight: '70vh',
                             overflowY: 'auto',
-                            borderRadius: '10px',
-                            padding: '20px'
+                            borderRadius: 'var(--radius-lg)',
+                            padding: '20px',
+                            boxShadow: 'var(--shadow-glass)'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -182,10 +172,10 @@ export default function Homenavbar(props) {
                                         style={{
                                             cursor: 'pointer',
                                             padding: '10px',
-                                            borderBottom: '1px solid #eee',
+                                            borderBottom: '1px solid var(--border-glass)',
                                             transition: 'background-color 0.3s'
                                         }}
-                                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+                                        onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--bg-glass-light)'}
                                         onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                                     >
                                         {product.name}

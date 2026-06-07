@@ -17,7 +17,7 @@ export default function DeliverItems() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:3000/api/seller/undelivered-orders', {
+      const response = await fetch('/api/seller/undelivered-orders', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export default function DeliverItems() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:3000/api/seller/confirm-delivery`, {
+      const response = await fetch(`/api/seller/confirm-delivery`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

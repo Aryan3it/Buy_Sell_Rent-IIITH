@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -8,13 +9,13 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const app = express();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const DB_URI = 'Insert Your MangoDB';
-const API_KEY = "Your Gemini API key";
+const DB_URI = process.env.DB_URI;
+const API_KEY = process.env.API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 const xml2js = require('xml2js');
 app.use(session({
-    secret: 'your-secret-key',
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
@@ -29,11 +30,13 @@ app.use(session({
 }));
 
 app.use(express.json());
+const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : ['http://localhost:3001', 'http://127.0.0.1:3001'];
+
 app.use(cors({
-    origin: ['http://localhost:3001'],
+    origin: allowedOrigins,
     credentials: true
 }));
-mongoose.connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(DB_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch((err) => console.error('MongoDB connection error:', err));
 
@@ -58,11 +61,29 @@ const productSchema = new mongoose.Schema({
 
 
 const CAS_URL = 'https://login.iiit.ac.in/cas';
-const SERVICE_URL = 'http://localhost:3000/api/cas/validate';
+const SERVICE_URL = 'http://127.0.0.1:3000/api/cas/validate';
 
 
 const User = mongoose.model('User', userSchema);
 const Product = mongoose.model('Product', productSchema);
+
+const cartSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+    quantity: { type: Number, required: true, default: 1 }
+});
+const Cart = mongoose.model('Cart', cartSchema);
+
+const orderSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    quantity: { type: Number, required: true },
+    otp: { type: String, required: true },
+    isDelivered: { type: Boolean, default: false },
+    orderDate: { type: Date, default: Date.now }
+});
+const Order = mongoose.model('Order', orderSchema);
 
 const isAuthenticated = (req, res, next) => {
     if (req.session.userId) {
@@ -120,7 +141,7 @@ app.post('/signup', async (req, res) => {
     const { firstName, lastName, email, age, contactNumber, password, recaptchaToken } = req.body;
     try {
         const recaptchaResponse = await axios.post(
-            `https://www.google.com/recaptcha/api/siteverify?secret=6Lc5z7oqAAAAAIsvrCUo0yB4f316Hou_7iIj-Ty-&response=${recaptchaToken}`
+            `https://www.google.com/recaptcha/api/siteverify?secret=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe&response=${recaptchaToken}`
         );
         if (!recaptchaResponse.data.success) {
             return res.status(400).json({ message: 'Invalid reCAPTCHA' });
@@ -129,10 +150,19 @@ app.post('/signup', async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ message: 'Email is already registered.' });
         }
-        req.session.pendingEmail = email;
-        req.session.pendingUser = { firstName, lastName, email, age, contactNumber, password };
-        const serviceURL = encodeURIComponent('http://localhost:3000/api/Signup/cas/validate');
-        return res.json({ redirectUrl: `https://login.iiit.ac.in/cas/login?service=${serviceURL}` });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({
+            firstName,
+            lastName,
+            email,
+            age,
+            contactNumber,
+            password: hashedPassword
+        });
+        await newUser.save();
+        req.session.userId = newUser._id;
+        await new Promise((resolve) => req.session.save(resolve));
+        return res.json({ redirectUrl: 'http://127.0.0.1:3001/home' });
     } catch (error) {
         console.error('Error during signup:', error);
         res.status(500).json({
@@ -143,9 +173,9 @@ app.post('/signup', async (req, res) => {
 });
 app.get('/api/Signup/cas/validate', async (req, res) => {
     const ticket = req.query.ticket;
-    const serviceURL = 'http://localhost:3000/api/Signup/cas/validate';
+    const serviceURL = 'http://127.0.0.1:3000/api/Signup/cas/validate';
     if (!ticket) {
-        return res.redirect('/');
+        return res.redirect('http://localhost:3001/');
     }
     try {
         const validateURL = `https://login.iiit.ac.in/cas/serviceValidate?ticket=${ticket}&service=${encodeURIComponent(serviceURL)}`;
@@ -158,12 +188,14 @@ app.get('/api/Signup/cas/validate', async (req, res) => {
             const pendingUser=req.session.pendingUser;
             req.session.pendingEmail = undefined;
             req.session.pendingUser = undefined;
+            console.log('CAS User:', casUser);
+            console.log('Pending Email:', pendingEmail);
             if (!pendingEmail) {
-                return res.redirect('/');
+                console.log('No pending email in session. Session ID:', req.sessionID);
+                return res.redirect('http://localhost:3001/');
             }
-            // console.log(casUser);
-            // console.log(pendingEmail);
-            if (casUser === pendingEmail) {
+            const pendingUsername = pendingEmail.split('@')[0];
+            if (casUser === pendingUsername || casUser === pendingEmail) {
                 
                 const hashedPassword = await bcrypt.hash(pendingUser.password, 10);
                 const newUser = new User({
@@ -176,13 +208,13 @@ app.get('/api/Signup/cas/validate', async (req, res) => {
                 });
                 await newUser.save();
                 req.session.userId = newUser._id;
-                return res.redirect('/home');
+                return res.redirect('http://localhost:3001/home');
             }
         }
-        return res.redirect('/');
+        return res.redirect('http://localhost:3001/');
     } catch (error) {
         console.error('CAS validation error:', error);
-        return res.redirect('/');
+        return res.redirect('http://localhost:3001/');
     }
 });
 
@@ -190,7 +222,7 @@ app.post('/api/login', async (req, res) => {
     const { email, password, recaptchaToken } = req.body;
     try {
         const recaptchaResponse = await axios.post(
-            `https://www.google.com/recaptcha/api/siteverify?secret=6Lc5z7oqAAAAAIsvrCUo0yB4f316Hou_7iIj-Ty-&response=${recaptchaToken}`
+            `https://www.google.com/recaptcha/api/siteverify?secret=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe&response=${recaptchaToken}`
         );
         if (!recaptchaResponse.data.success) {
             return res.status(400).json({ message: 'Invalid reCAPTCHA' });
@@ -203,9 +235,9 @@ app.post('/api/login', async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-        req.session.pendingEmail = email;
-        const serviceURL = encodeURIComponent('http://localhost:3000/api/cas/validate');
-        return res.json({ redirectUrl: `https://login.iiit.ac.in/cas/login?service=${serviceURL}` });
+        req.session.userId = user._id;
+        await new Promise((resolve) => req.session.save(resolve));
+        return res.json({ redirectUrl: 'http://127.0.0.1:3001/home' });
 
     } catch (error) {
         console.error('Login error:', error);
@@ -227,9 +259,9 @@ app.post('/api/clear-session', (req, res) => {
 
 app.get('/api/cas/validate', async (req, res) => {
     const ticket = req.query.ticket;
-    const serviceURL = 'http://localhost:3000/api/cas/validate';
+    const serviceURL = 'http://127.0.0.1:3000/api/cas/validate';
     if (!ticket) {
-        return res.redirect('/login');
+        return res.redirect('http://localhost:3001/login');
     }
     try {
         const validateURL = `https://login.iiit.ac.in/cas/serviceValidate?ticket=${ticket}&service=${encodeURIComponent(serviceURL)}`;
@@ -240,24 +272,26 @@ app.get('/api/cas/validate', async (req, res) => {
             const casUser = result['cas:serviceResponse']['cas:authenticationSuccess'][0]['cas:user'][0];
             const pendingEmail = req.session.pendingEmail;
             req.session.pendingEmail = undefined;
+            console.log('Login CAS User:', casUser);
+            console.log('Login Pending Email:', pendingEmail);
             if (!pendingEmail ) {
-                return res.redirect('/login');
+                console.log('No pending email in login session. Session ID:', req.sessionID);
+                return res.redirect('http://localhost:3001/login');
             }
-            // console.log(casUser);
-            // console.log(pendingEmail);
-            if (casUser === pendingEmail) {
+            const pendingUsername = pendingEmail.split('@')[0];
+            if (casUser === pendingUsername || casUser === pendingEmail) {
                 const user = await User.findOne({ email: pendingEmail });
                 if (!user) {
-                    return res.redirect('/login');
+                    return res.redirect('http://localhost:3001/login');
                 }
                 req.session.userId = user._id;
-                return res.redirect('/home');
+                return res.redirect('http://localhost:3001/home');
             }
         }
-        return res.redirect('/login');
+        return res.redirect('http://localhost:3001/login');
     } catch (error) {
         console.error('CAS validation error:', error);
-        return res.redirect('/login');
+        return res.redirect('http://localhost:3001/login');
     }
 });
 
@@ -640,12 +674,12 @@ app.delete('/api/cart/:productId', isAuthenticated, async (req, res) => {
 
 app.post('/api/orders', isAuthenticated, async (req, res) => {
     const { cartItems } = req.body;
-    const session = await mongoose.startSession();
+    const dbSession = await mongoose.startSession();
     try {
-        session.startTransaction();
+        dbSession.startTransaction();
         const orders = await Promise.all(cartItems.map(async (item) => {
             const product = await Product.findById(item.productId);
-            otp = Math.floor(100000 + Math.random() * 900000).toString()
+            const otp = Math.floor(100000 + Math.random() * 900000).toString()
             const hashedOtp = await bcrypt.hash(otp, 10);
             const order = new Order({
                 userId: req.session.userId,
@@ -654,19 +688,19 @@ app.post('/api/orders', isAuthenticated, async (req, res) => {
                 quantity: item.quantity,
                 otp: hashedOtp
             });
-            await order.save({ session });
+            await order.save({ session: dbSession });
             return order;
         }));
-        await Cart.deleteMany({ userId: req.session.userId }).session(session);
-        await session.commitTransaction();
-        session.endSession();
+        await Cart.deleteMany({ userId: req.session.userId }).session(dbSession);
+        await dbSession.commitTransaction();
+        dbSession.endSession();
         res.status(201).json({
             message: 'Orders placed successfully',
             orders
         });
     } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
+        await dbSession.abortTransaction();
+        dbSession.endSession();
         console.error('Order placement error:', error);
         res.status(500).json({
             message: 'Error placing orders',
@@ -781,13 +815,13 @@ app.get('/api/orders/sold', isAuthenticated, async (req, res) => {
     }
 });
 
-app.use(express.static(path.join(__dirname, '../frontend/my-app/build')));
+app.use(express.static(path.join(__dirname, '../frontend/build')));
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/my-app/build', 'index.html'));
+app.get(/(.*)/, (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
-const PORT = 3000
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

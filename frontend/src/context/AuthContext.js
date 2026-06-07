@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuthStatus = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/check-auth', {
+            const response = await axios.get('/check-auth', {
                 withCredentials: true
             });
             setIsAuthenticated(true);
@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            const response = await axios.post('http://localhost:3000/login', credentials, {
+            const response = await axios.post('/login', credentials, {
                 withCredentials: true
             });
             setIsAuthenticated(true);
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await axios.post('http://localhost:3000/logout', {}, {
+            await axios.post('/logout', {}, {
                 withCredentials: true
             });
         } catch (error) {

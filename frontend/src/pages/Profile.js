@@ -23,7 +23,7 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/profile');
+        const response = await axios.get('/api/profile');
         setUserData(response.data);
         setFormData(response.data);
         setError(null);
@@ -108,7 +108,7 @@ const UserProfile = () => {
 
     if (Object.keys(newErrors).length === 0) {
       try {
-        const response = await axios.put('http://localhost:3000/api/profile', formData);
+        const response = await axios.put('/api/profile', formData);
         setIsEditing(false);
         setUserData(response.data.user);
         alert('Profile updated successfully!');

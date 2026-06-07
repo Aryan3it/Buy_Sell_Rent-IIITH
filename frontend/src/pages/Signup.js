@@ -96,7 +96,7 @@ export default function SignUp() {
 
         if (Object.keys(newErrors).length === 0) {
             try {
-                const response = await fetch('http://localhost:3000/signup', {
+                const response = await fetch('/signup', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -120,8 +120,7 @@ export default function SignUp() {
                         setRecaptchaToken(null);
                     }
                 } else {
-                    const errorData = await response.json();
-                    if (errorData.message === 'Email is already registered.') {
+                    if (data.message === 'Email is already registered.') {
                         alert('User already exists with this email.');
                         setFormData({
                             firstName: '',
@@ -134,7 +133,7 @@ export default function SignUp() {
                         setRecaptchaToken(null);
                         // setRecaptchaKey(prev => prev + 1);
                     } else {
-                        setErrors({ submit: errorData.message || 'Failed to sign up. Please try again.' });
+                        setErrors({ submit: data.message || 'Failed to sign up. Please try again.' });
                         setRecaptchaToken(null);
                         // setRecaptchaKey(prev => prev + 1);
                     }
@@ -245,7 +244,7 @@ export default function SignUp() {
 
                 <div className={styles.recaptchaContainer}>
                     <ReCAPTCHA
-                        sitekey="6Lc5z7oqAAAAAO6FPsxuAg88x_aR7b64KQTKYxtf"
+                        sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
                         onChange={handleRecaptchaChange}
                     />
                 </div>
