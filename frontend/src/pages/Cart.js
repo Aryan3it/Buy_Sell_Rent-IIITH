@@ -13,7 +13,9 @@ const Cart = () => {
   }, []);
 
   useEffect(() => {
-    calculateTotal();
+    const totalAmount = cartItems.reduce((sum, item) =>
+      sum + (item.product.price * item.quantity), 0);
+    setTotal(totalAmount);
   }, [cartItems]);
 
   const fetchCartItems = async () => {
@@ -27,17 +29,13 @@ const Cart = () => {
     }
   };
 
-  const calculateTotal = () => {
-    const totalAmount = cartItems.reduce((sum, item) =>
-      sum + (item.product.price * item.quantity), 0);
-    setTotal(totalAmount);
-  };
+
 
   const updateQuantity = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
 
     try {
-      const response = await axios.put(`/api/cart/update`, {
+      await axios.put(`/api/cart/update`, {
         productId: productId, // Use the product's _id from the product object
         quantity: newQuantity
       }, {
@@ -79,7 +77,7 @@ const Cart = () => {
     }
 
     try {
-      const response = await axios.post('/api/orders', { cartItems });
+      await axios.post('/api/orders', { cartItems });
 
       // Clear cart and reset total
       setCartItems([]);

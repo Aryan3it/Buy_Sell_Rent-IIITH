@@ -10,7 +10,6 @@ export default function Login() {
     });
     const [errors, setErrors] = useState({});
     const [recaptchaToken, setRecaptchaToken] = useState(null);
-    const navigate = useNavigate();
 
     // Clear any existing CAS session on component mount
     useEffect(() => {
@@ -29,24 +28,6 @@ export default function Login() {
 
     const handleRecaptchaChange = (token) => {
         setRecaptchaToken(token);
-    };
-
-    const handleCASLogin = async () => {
-        try {
-            // First clear the session
-            await fetch('/api/clear-session', {
-                method: 'POST',
-                credentials: 'include'
-            });
-
-            // Then redirect to CAS
-            const casURL = 'https://login.iiit.ac.in/cas/login';
-            const serviceURL = encodeURIComponent('/api/cas/validate');
-            window.location.href = `${casURL}?service=${serviceURL}`;
-        } catch (error) {
-            console.error('Failed to initiate CAS login:', error);
-            setErrors({ submit: 'Failed to initiate login. Please try again.' });
-        }
     };
 
     const validateField = (name, value) => {

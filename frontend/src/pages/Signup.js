@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import styles from './SignUp.module.css';
 import { Link } from 'react-router-dom';
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 export default function SignUp() {
     const [formData, setFormData] = useState({
@@ -20,7 +17,7 @@ export default function SignUp() {
 
     const [errors, setErrors] = useState({});
     const [recaptchaToken, setRecaptchaToken] = useState(null);
-    const navigate = useNavigate();
+
     const handleRecaptchaChange = (token) => {
         setRecaptchaToken(token);
     };

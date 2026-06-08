@@ -14,7 +14,7 @@ import Product from './pages/Product.js';
 import Chatbot from './pages/chatbot.js';
 
 function App() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <Router>
