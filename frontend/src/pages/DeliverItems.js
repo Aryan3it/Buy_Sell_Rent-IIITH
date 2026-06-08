@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import styles from './DeliverItems.module.css';
 import Navbar from '../Components/Navbar';
 
@@ -17,20 +18,14 @@ export default function DeliverItems() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('/api/seller/undelivered-orders', {
-        method: 'GET',
+      const response = await axios.get('/api/seller/undelivered-orders', {
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        credentials: 'include'
+        withCredentials: true
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch undelivered orders');
-      }
-
-      const data = await response.json();
+      const data = response.data;
       setOrders(data);
 
       const initialOtpInputs = data.reduce((acc, order) => {
@@ -76,22 +71,19 @@ export default function DeliverItems() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`/api/seller/confirm-delivery`, {
-        method: 'POST',
+      const response = await axios.post(`/api/seller/confirm-delivery`, {
+        orderId,
+        otp: enteredOtp
+      }, {
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        credentials: 'include',
-        body: JSON.stringify({
-          orderId,
-          otp: enteredOtp
-        })
+        withCredentials: true
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
+      if (response.status === 200 || response.status === 201) {
         setOrders(prev => prev.filter(order => order._id !== orderId));
 
         setOtpInputs(prev => {
@@ -99,17 +91,14 @@ export default function DeliverItems() {
           delete newInputs[orderId];
           return newInputs;
         });
-      } else {
-        setErrors(prev => ({
-          ...prev,
-          [orderId]: data.message || 'Delivery confirmation failed'
-        }));
       }
+
     } catch (error) {
       console.error('Error confirming delivery:', error);
+      const errorMessage = error.response?.data?.message || 'Delivery confirmation failed. Please try again.';
       setErrors(prev => ({
         ...prev,
-        [orderId]: 'Network error. Please try again.'
+        [orderId]: errorMessage
       }));
     }
   };
