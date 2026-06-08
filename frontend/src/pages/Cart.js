@@ -102,7 +102,7 @@ const Cart = () => {
 
   return (
     <div className={styles.cartPage}>
-      <Navbar title="Tech Mart IIIT" />
+      <Navbar title="E-Mart" />
       <div className={styles.cartContainer}>
         <h1>Your Cart</h1>
         {cartItems.length === 0 ? (

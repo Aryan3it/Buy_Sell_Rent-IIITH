@@ -70,8 +70,8 @@ const productSchema = new mongoose.Schema({
 });
 
 
-const CAS_URL = 'https://login.iiit.ac.in/cas';
-const SERVICE_URL = 'http://127.0.0.1:3000/api/cas/validate';
+// const CAS_URL = 'https://login.iiit.ac.in/cas';
+// const SERVICE_URL = 'http://127.0.0.1:3000/api/cas/validate';
 
 
 const User = mongoose.model('User', userSchema);
@@ -267,43 +267,43 @@ app.post('/api/clear-session', (req, res) => {
     });
 });
 
-app.get('/api/cas/validate', async (req, res) => {
-    const ticket = req.query.ticket;
-    const serviceURL = 'http://127.0.0.1:3000/api/cas/validate';
-    if (!ticket) {
-        return res.redirect('http://localhost:3001/login');
-    }
-    try {
-        const validateURL = `https://login.iiit.ac.in/cas/serviceValidate?ticket=${ticket}&service=${encodeURIComponent(serviceURL)}`;
-        const response = await axios.get(validateURL);
-        const parser = new xml2js.Parser();
-        const result = await parser.parseStringPromise(response.data);
-        if (result['cas:serviceResponse']['cas:authenticationSuccess']) {
-            const casUser = result['cas:serviceResponse']['cas:authenticationSuccess'][0]['cas:user'][0];
-            const pendingEmail = req.session.pendingEmail;
-            req.session.pendingEmail = undefined;
-            console.log('Login CAS User:', casUser);
-            console.log('Login Pending Email:', pendingEmail);
-            if (!pendingEmail ) {
-                console.log('No pending email in login session. Session ID:', req.sessionID);
-                return res.redirect('http://localhost:3001/login');
-            }
-            const pendingUsername = pendingEmail.split('@')[0];
-            if (casUser === pendingUsername || casUser === pendingEmail) {
-                const user = await User.findOne({ email: pendingEmail });
-                if (!user) {
-                    return res.redirect('http://localhost:3001/login');
-                }
-                req.session.userId = user._id;
-                return res.redirect('http://localhost:3001/home');
-            }
-        }
-        return res.redirect('http://localhost:3001/login');
-    } catch (error) {
-        console.error('CAS validation error:', error);
-        return res.redirect('http://localhost:3001/login');
-    }
-});
+// app.get('/api/cas/validate', async (req, res) => {
+//     const ticket = req.query.ticket;
+//     const serviceURL = 'http://127.0.0.1:3000/api/cas/validate';
+//     if (!ticket) {
+//         return res.redirect('http://localhost:3001/login');
+//     }
+//     try {
+//         const validateURL = `https://login.iiit.ac.in/cas/serviceValidate?ticket=${ticket}&service=${encodeURIComponent(serviceURL)}`;
+//         const response = await axios.get(validateURL);
+//         const parser = new xml2js.Parser();
+//         const result = await parser.parseStringPromise(response.data);
+//         if (result['cas:serviceResponse']['cas:authenticationSuccess']) {
+//             const casUser = result['cas:serviceResponse']['cas:authenticationSuccess'][0]['cas:user'][0];
+//             const pendingEmail = req.session.pendingEmail;
+//             req.session.pendingEmail = undefined;
+//             console.log('Login CAS User:', casUser);
+//             console.log('Login Pending Email:', pendingEmail);
+//             if (!pendingEmail ) {
+//                 console.log('No pending email in login session. Session ID:', req.sessionID);
+//                 return res.redirect('http://localhost:3001/login');
+//             }
+//             const pendingUsername = pendingEmail.split('@')[0];
+//             if (casUser === pendingUsername || casUser === pendingEmail) {
+//                 const user = await User.findOne({ email: pendingEmail });
+//                 if (!user) {
+//                     return res.redirect('http://localhost:3001/login');
+//                 }
+//                 req.session.userId = user._id;
+//                 return res.redirect('http://localhost:3001/home');
+//             }
+//         }
+//         return res.redirect('http://localhost:3001/login');
+//     } catch (error) {
+//         console.error('CAS validation error:', error);
+//         return res.redirect('http://localhost:3001/login');
+//     }
+// });
 
 app.get('/check-auth', isAuthenticated, async (req, res) => {
     try {
@@ -827,7 +827,7 @@ app.get('/api/orders/sold', isAuthenticated, async (req, res) => {
 
 // Basic Health Check Route for the Root URL
 app.get('/', (req, res) => {
-    res.send('Tech Mart IIIT Backend API is running successfully!');
+    res.send('E-Mart Backend API is running successfully!');
 });
 
 // Frontend serving logic removed because the frontend is deployed independently on Netlify.

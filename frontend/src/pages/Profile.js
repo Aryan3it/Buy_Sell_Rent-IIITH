@@ -45,7 +45,7 @@ const UserProfile = () => {
 
     switch (name) {
       case 'email':
-        const emailRegex = /^[a-zA-Z0-9._%+-]*[a-zA-Z0-9.-]+\.iiit\.ac\.in$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(trimmedValue);
       case 'contactNumber':
         const phoneRegex = /^\d{10}$/;
@@ -63,7 +63,7 @@ const UserProfile = () => {
     switch (name) {
       case 'email':
         return trimmedValue
-          ? 'Email must be a valid IIIT domain (e.g., example.iiit.ac.in).'
+          ? 'Please enter a valid email address.'
           : 'Email is required.';
       case 'contactNumber':
         return trimmedValue
@@ -143,7 +143,7 @@ const UserProfile = () => {
 
   return (
     <>
-      <Navbar title="Tech Mart IIIT" />
+      <Navbar title="E-Mart" />
       <div className={styles.container}>
         <h1>User Profile</h1>
         <div className={styles.userDetails}>

@@ -74,7 +74,7 @@ const Product = () => {
 
     return (
         <div>
-            <Navbar title="Tech Mart IIIT" />
+            <Navbar title="E-Mart" />
             <div className={styles.container}>
                 <div className={styles.productDetails}>
                     <h1>{product.name}</h1>

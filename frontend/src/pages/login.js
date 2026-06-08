@@ -33,7 +33,7 @@ export default function Login() {
     const validateField = (name, value) => {
         switch (name) {
             case 'email':
-                const emailRegex = /^[a-zA-Z0-9._%+-@]*[a-zA-Z0-9.-@]+\.iiit\.ac\.in$/;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 return emailRegex.test(value.trim());
             case 'password':
                 return value.length >= 8;
@@ -46,7 +46,7 @@ export default function Login() {
         switch (name) {
             case 'email':
                 return value.trim()
-                    ? 'Email must be a valid IIIT domain (e.g., user@iiit.ac.in).'
+                    ? 'Please enter a valid email address.'
                     : 'Email is required.';
             case 'password':
                 return value.trim()
@@ -143,11 +143,11 @@ export default function Login() {
         <div className={styles.container}>
             <form className={styles.formWrapper} onSubmit={handleSubmit}>
                 <div>
-                    <label className={styles.formLabel}>IIIT Email Address*</label>
+                    <label className={styles.formLabel}>Email Address*</label>
                     <input
                         type="text"
                         className={`${styles.formInput} ${errors.email ? styles.invalidInput : ''}`}
-                        placeholder="example@iiit.ac.in"
+                        placeholder="example@email.com"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}

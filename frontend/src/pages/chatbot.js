@@ -54,14 +54,14 @@ export default function Chatbot() {
 
     return (
         <div className={styles.pageWrapper}>
-            <Navbar title="Tech Mart IIIT" />
+            <Navbar title="E-Mart" />
 
             <div className={styles.outerContainer}>
                 {/* Chat Container */}
                 <div className={styles.chatCard}>
                     {/* Chat Header */}
                     <div className={styles.chatHeader}>
-                        <h2>IIIT Buy-Sell Chatbot</h2>
+                        <h2>E-Mart Chatbot</h2>
                         <button
                             onClick={handleResetChat}
                             className={styles.resetButton}

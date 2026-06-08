@@ -117,7 +117,7 @@ export default function DeliverItems() {
   if (isLoading) {
     return (
       <>
-        <Navbar title="Tech Mart IIIT" />
+        <Navbar title="E-Mart" />
         <div className={styles.container}>
           <p>Loading orders...</p>
         </div>
@@ -127,7 +127,7 @@ export default function DeliverItems() {
 
   return (
     <>
-      <Navbar title="Tech Mart IIIT" />
+      <Navbar title="E-Mart" />
       <div className={styles.container}>
         <h2>Undelivered Orders</h2>
 

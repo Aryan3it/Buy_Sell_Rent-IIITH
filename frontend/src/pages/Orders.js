@@ -189,7 +189,7 @@ const Orders = () => {
 
   return (
     <div className={styles.ordersPage}>
-      <Navbar title="Tech Mart IIIT" />
+      <Navbar title="E-Mart" />
       <div className={styles.ordersContainer}>
         <div className={styles.tabNavigation}>
           <button

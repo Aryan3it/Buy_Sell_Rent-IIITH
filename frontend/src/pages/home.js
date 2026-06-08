@@ -68,7 +68,7 @@ const HomePage = () => {
 
   return (
     <div style={{ background: 'linear-gradient(135deg, #325672, #d9e3f0)', minHeight: '100vh' }}>
-      <Homenavbar title="Tech Mart IIIT" />
+      <Homenavbar title="E-Mart" />
       <div className={styles.container}>
         {/* Filters */}
         <div style={{ marginBottom: '20px', display: 'flex', gap: '20px' }}>

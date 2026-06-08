@@ -44,7 +44,7 @@ const ProductForm = () => {
 
     return (
         <>
-            <Navbar title="Tech Mart IIIT" />
+            <Navbar title="E-Mart" />
             <div className={styles.container}>
                 <h1>Add New Product</h1>
                 {message && <p className={styles.message}>{message}</p>}
