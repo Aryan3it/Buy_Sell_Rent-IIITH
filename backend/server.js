@@ -14,6 +14,7 @@ const API_KEY = process.env.API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 const xml2js = require('xml2js');
+app.set('trust proxy', 1);
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
@@ -23,8 +24,9 @@ app.use(session({
         ttl: 24 * 60 * 60
     }),
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === 'production' || true, // Must be true for sameSite: 'none'
         httpOnly: true,
+        sameSite: 'none',
         maxAge: 24 * 60 * 60 * 1000
     }
 }));
@@ -162,7 +164,7 @@ app.post('/signup', async (req, res) => {
         await newUser.save();
         req.session.userId = newUser._id;
         await new Promise((resolve) => req.session.save(resolve));
-        return res.json({ redirectUrl: 'http://127.0.0.1:3001/home' });
+        return res.json({ redirectUrl: '/home' });
     } catch (error) {
         console.error('Error during signup:', error);
         res.status(500).json({
@@ -237,7 +239,7 @@ app.post('/api/login', async (req, res) => {
         }
         req.session.userId = user._id;
         await new Promise((resolve) => req.session.save(resolve));
-        return res.json({ redirectUrl: 'http://127.0.0.1:3001/home' });
+        return res.json({ redirectUrl: '/home' });
 
     } catch (error) {
         console.error('Login error:', error);
