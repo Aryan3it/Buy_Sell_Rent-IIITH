@@ -815,6 +815,11 @@ app.get('/api/orders/sold', isAuthenticated, async (req, res) => {
     }
 });
 
+// Basic Health Check Route for the Root URL
+app.get('/', (req, res) => {
+    res.send('Tech Mart IIIT Backend API is running successfully!');
+});
+
 // Frontend serving logic removed because the frontend is deployed independently on Netlify.
 
 const PORT = process.env.PORT || 3000;
