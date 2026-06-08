@@ -81,7 +81,6 @@ export default function DeliverItems() {
         withCredentials: true
       });
 
-      const data = response.data;
 
       if (response.status === 200 || response.status === 201) {
         setOrders(prev => prev.filter(order => order._id !== orderId));
