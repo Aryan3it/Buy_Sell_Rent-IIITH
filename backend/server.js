@@ -32,10 +32,18 @@ app.use(session({
 }));
 
 app.use(express.json());
-const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : ['http://localhost:3001', 'http://127.0.0.1:3001'];
+const allowedOrigins = process.env.FRONTEND_URL 
+    ? process.env.FRONTEND_URL.split(',').map(url => url.replace(/\/$/, '')) 
+    : ['http://localhost:3001', 'http://127.0.0.1:3001'];
 
 app.use(cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 mongoose.connect(DB_URI)

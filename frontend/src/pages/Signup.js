@@ -135,7 +135,7 @@ export default function SignUp() {
                 }
             } catch (error) {
                 console.error('Signup error:', error.response?.data || error);
-                const errorMessage = error.response?.data?.message || 'Failed to sign up. Please try again.';
+                const errorMessage = error.response?.data?.details || error.response?.data?.message || error.message || 'Failed to sign up. Please try again.';
                 
                 if (errorMessage === 'Email is already registered.') {
                     alert('User already exists with this email.');

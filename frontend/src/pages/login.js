@@ -126,7 +126,8 @@ export default function Login() {
                 }
             } catch (error) {
                 console.error('Login error:', error.response?.data || error);
-                setErrors({ submit: error.response?.data?.message || 'Failed to Login. Please try again.' });
+                const errorMessage = error.response?.data?.details || error.response?.data?.message || error.message || 'Failed to Login. Please try again.';
+                setErrors({ submit: errorMessage });
                 setFormData({
                     email: '',
                     password: '',
