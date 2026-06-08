@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Link } from 'react-router-dom';
 import styles from './login.module.css';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -15,9 +16,8 @@ export default function Login() {
     useEffect(() => {
         const clearSession = async () => {
             try {
-                await fetch('/api/clear-session', {
-                    method: 'POST',
-                    credentials: 'include'
+                await axios.post('/api/clear-session', {}, {
+                    withCredentials: true
                 });
             } catch (error) {
                 console.error('Failed to clear session:', error);
@@ -96,19 +96,16 @@ export default function Login() {
 
         if (Object.keys(newErrors).length === 0) {
             try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        ...formData,
-                        recaptchaToken,
-                    }),
+                const response = await axios.post('/api/login', {
+                    ...formData,
+                    recaptchaToken,
+                }, {
+                    headers: { 'Content-Type': 'application/json' },
+                    withCredentials: true
                 });
-                const data = await response.json();
-                if (response.ok) {
+                
+                const data = response.data;
+                if (response.status === 200) {
                     if (data.redirectUrl) {
                         window.location.href = data.redirectUrl;
                     } else {
@@ -128,8 +125,8 @@ export default function Login() {
                     setRecaptchaToken(null);
                 }
             } catch (error) {
-                console.error('Login error:', error);
-                setErrors({ submit: 'Failed to Login. Please try again.' });
+                console.error('Login error:', error.response?.data || error);
+                setErrors({ submit: error.response?.data?.message || 'Failed to Login. Please try again.' });
                 setFormData({
                     email: '',
                     password: '',

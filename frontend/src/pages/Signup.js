@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 import ReCAPTCHA from 'react-google-recaptcha';
 import styles from './SignUp.module.css';
@@ -93,19 +94,16 @@ export default function SignUp() {
 
         if (Object.keys(newErrors).length === 0) {
             try {
-                const response = await fetch('/signup', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        ...formData,
-                        recaptchaToken,
-                    }),
+                const response = await axios.post('/signup', {
+                    ...formData,
+                    recaptchaToken,
+                }, {
+                    headers: { 'Content-Type': 'application/json' },
+                    withCredentials: true
                 });
 
-                const data = await response.json();
-                if (response.ok) {
+                const data = response.data;
+                if (response.status === 200 || response.status === 201) {
                     if (data.redirectUrl) {
                         window.location.href = data.redirectUrl;
                     } else {
@@ -136,10 +134,24 @@ export default function SignUp() {
                     }
                 }
             } catch (error) {
-                console.error('Signup error:', error);
-                setErrors({ submit: 'Failed to sign up. Please try again.' });
+                console.error('Signup error:', error.response?.data || error);
+                const errorMessage = error.response?.data?.message || 'Failed to sign up. Please try again.';
+                
+                if (errorMessage === 'Email is already registered.') {
+                    alert('User already exists with this email.');
+                } else {
+                    setErrors({ submit: errorMessage });
+                }
+                
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    age: '',
+                    contactNumber: '',
+                    password: '',
+                });
                 setRecaptchaToken(null);
-                // setRecaptchaKey(prev => prev + 1);
             }
         } else {
             setErrors(newErrors);
